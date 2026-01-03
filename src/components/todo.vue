@@ -7,6 +7,7 @@
             @delete-todo="handleDeleteTodo" 
             @confirm-todo="handleConfirmTodo"   
             @settings-todo="handleEditTodo"
+            @clean-all-todo="data = [] && notificar('success', 'Todas as tarefas foram removidas com sucesso!')"
         />
     </div>
 </template>
@@ -15,6 +16,26 @@
     import HeaderTodo from './header-todo.vue';
     import BodyTodo from './body-todo.vue';
     import { ref } from 'vue';
+    import Swal from 'sweetalert2'
+
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+        }
+    })
+
+    const notificar = (icon, message) => {
+        Toast.fire({
+            icon: icon || 'success',
+            title: message || 'Tarefa adicionada com sucesso!'
+        })
+    }
 
     const data = ref([
         { id: 1, description: 'agendamento 1', flag: 1},
@@ -24,24 +45,34 @@
     ]);
 
     const handleCreateTodo = (todo) => {
+        if(todo === '') {
+            return notificar('error', 'Digite uma tarefa válida!')
+        }
+        
         data.value.find((el => el.description === todo)) ? 
-            alert('Tarefa já existe!') : 
-            data.value.push({id: 5, description: todo})
+            notificar('error', 'Tarefa já existe!') : 
+            data.value.push({id: 5, description: todo}) && notificar('success', 'Tarefa adicionada com sucesso!')   
     }
 
     const handleDeleteTodo = (row) => {
         const newData = data.value.findIndex((el) => el.id === row.id) 
         data.value.splice(newData, 1)
+
+        notificar('success', 'Tarefa removida com sucesso!')
     }
 
     const handleConfirmTodo = (row) => {
         const el = data.value.findIndex((el) => el.id === row.id) 
         data.value[el].flag = !row.flag; 
+
+        notificar('success', 'Tarefa atualizada com sucesso!')
     }
 
     const handleEditTodo = (row) => {
         const el = data.value.findIndex((el) => el.id === row.id) 
         data.value[el].description = row.description; 
+
+        notificar('success', 'Tarefa editada com sucesso!')
     }
 </script>
 
